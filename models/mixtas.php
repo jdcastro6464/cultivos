@@ -30,6 +30,13 @@ class Mixtas extends Conexion{
 		return $this->listado;
 	}
 
+	public function listadoRoles() {
+		$sentencia = $this->ejecutar("SELECT * FROM roles");
+		$this->listado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+
+		return $this->listado;
+	}
+
 	public function listadoCultivos() {
 		$sentencia = $this->ejecutar("SELECT * FROM cultivos
 			WHERE

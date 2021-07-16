@@ -64,7 +64,7 @@ if(isset($_SESSION['user']['rol'])){
                     <button id="btnLogin" class="btn btn-block login-btn mb-4" type="submit">Iniciar Sesión</button>
 
                   </form>
-                  <a href="#!" class="forgot-password-link">¿Olvide Contraseña?</a>
+                  <!-- <a href="#!" class="forgot-password-link">¿Olvide Contraseña?</a> -->
 
                   <nav class="login-card-footer-nav mt-4">
                     <a href="http://sennovacolomboaleman.blogspot.com/" target="_blank">Copyright © <?php echo date("Y") ?> Sennova CNCA.</a>

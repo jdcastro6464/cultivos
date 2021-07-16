@@ -4,11 +4,17 @@
 		<li class="sidebar-list-item"><a href="index.php" class="sidebar-link text-muted inicio">
 			<i class="o-home-1 mr-3 text-gray"></i><span>Inicio</span></a>
 		</li>
+		<li class="sidebar-list-item"><a href="usuario.php" class="sidebar-link text-muted usuario">
+			<i class="o-user-1 mr-3 text-gray"></i><span>Admin. Usuario</span></a>
+		</li>
 		<li class="sidebar-list-item"><a href="seguimiento.php" class="sidebar-link text-muted seguimiento">
 			<i class="o-sales-up-1 mr-3 text-gray"></i><span>Seguimiento por gráficas</span></a>
 		</li>
 		<li class="sidebar-list-item"><a href="prediccion.php" class="sidebar-link text-muted prediccion">
 			<i class="o-medical-chart-1 mr-3 text-gray"></i><span>Predicción de datos - Investigación</span></a>
+		</li>
+		<li class="sidebar-list-item"><a href="contactenos.php" class="sidebar-link text-muted contactenos">
+			<i class="o-paperwork-1 mr-3 text-gray"></i><span>Contáctenos</span></a>
 		</li>
 	</ul>
 </div>

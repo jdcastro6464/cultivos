@@ -15,6 +15,10 @@ $(document).ready(function() {
 			$(".seguimiento").addClass('active');
 		} else if(namepage == "prediccion.php"){
 			$(".prediccion").addClass('active');
+		} else if(namepage == "usuario.php"){
+			$(".usuario").addClass('active');
+		} else if(namepage == "contactenos.php"){
+			$(".contactenos").addClass('active');
 		}
 	});
 

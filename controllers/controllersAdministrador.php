@@ -339,6 +339,219 @@ if( isset($_POST["peticion"]) || isset($_GET["peticion"]) ) {
 		echo json_encode($respuesta);
 		break;
 
+		case 'agregarUsuario':
+		$comprobar = $ca->comprobarUsuario($_POST['usuario']);
+
+		if ($comprobar[0]['cant']) {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Usuario ya registra en Base de datos"
+			];
+		} else {
+			$paramsAddPerson = [
+				":nombre" => utf8_decode($_POST['nombreC']),
+				":documento" => utf8_decode($_POST['documento']),
+				":email" => utf8_decode($_POST['email']),
+				":celular" => utf8_decode($_POST['celular']) 
+			];
+
+			$queryAddPerson = $ca->agregarPersona($paramsAddPerson);
+
+			if ($queryAddPerson) {
+				$paramsAddUser = [
+					":idPersona" => $queryAddPerson ,
+					":usuario" => utf8_decode($_POST['usuario']),
+					":clave" => hash("sha256", utf8_decode($_POST['passwordC'])),
+					":idRol" => utf8_decode($_POST['idRol']) 
+				];
+
+				$queryAddUser = $ca->agregarUsuario($paramsAddUser);
+
+				if ($queryAddUser) {
+					$respuesta = [
+						"exito" => true,
+						"msj" => "Usuario Agregado"
+					];
+				} else {
+					$ca->eliminarPersona($queryAddPerson);
+					$respuesta = [
+						"exito" => false,
+						"msj" => "Error al agregar Usuario"
+					];
+				}
+			} else {
+				$respuesta = [
+					"exito" => false,
+					"msj" => "Error al ingresar Persona"
+				];
+			}
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'listarUsuarios':
+		$datos = $ca->listadoUsuarios();
+		$data = "";
+		foreach ($datos as $lista) {
+			$opciones = "<button type='button' data-idUsu='".$lista['idUsu']."' data-idPer='".$lista['id']."' class='reset btn btn-warning btn-sm mx-1' data-toggle='tooltip' data-placement='top' title='Cambiar Contraseña'><i class='fa fa-unlock'></i></button>
+			<button type='button' data-idUsu='".$lista['idUsu']."' data-idPer='".$lista['id']."' class='editar btn btn-success btn-sm mx-1' data-toggle='tooltip' data-placement='top' title='Actualizar Usuario'><i class='fas fa-user-edit'></i></button>
+			<button type='button' data-idUsu='".$lista['idUsu']."' data-idPer='".$lista['id']."' class='eliminar ml-2 btn btn-danger btn-sm mx-1' data-toggle='tooltip' data-placement='top' title='Eliminar Usuario'><i class='fa fa-trash'></i></button>";
+
+			$data.= '{
+				"Opciones" : "'.$ca->parse($opciones).'",
+				"Nombre Completo" : "'.$ca->parse(utf8_encode($lista['nombre'])).'",
+				"No Documento" : "'.$ca->parse(utf8_encode($lista['documento'])).'",
+				"E-mail" : "'.$ca->parse(utf8_encode($lista['email'])).'",
+				"Usuario" : "'.$ca->parse(utf8_encode($lista['usuario'])).'",
+				"Rol" : "'.$ca->parse(utf8_encode($lista['nomRol'])).'"
+			},';
+		}
+
+		$data = substr($data,0, strlen($data) - 1);
+
+		echo '{"data":['.$data.']}';
+		break;
+
+		case 'actualizarPassword':
+		$paramsChangePassword = [
+			":clave" => hash("sha256", utf8_decode($_POST['newPasswordC'])),
+			":id" => $_POST['idUsu']
+		];
+
+		$query = $ca->cambiarContrasenia($paramsChangePassword);
+
+		if ($query) {
+			$respuesta = [
+				"exito" => true,
+				"msj" => "Contraseña Actualizada"
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Error al actualizar contraseña"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'traerInformacionUsuario':
+		$query = $ca->getInformacionUsuario($_POST['idPer']);
+
+		if (sizeof($query)) {
+			$respuesta = [
+				"exito" => true,
+				"nombre" => utf8_encode($query[0]['nombre']),
+				"documento" => utf8_encode($query[0]['documento']),
+				"email" => utf8_encode($query[0]['email']),
+				"celular" => utf8_encode($query[0]['celular']),
+				"idRol" => utf8_encode($query[0]['idRol']),
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Internal Error"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'actualizarUsuario':
+		$paramsEditPersona = [
+			":nombre" => utf8_decode($_POST['edit-nombreC']),
+			":documento" => utf8_decode($_POST['edit-documento']),
+			":email" => utf8_decode($_POST['edit-email']),
+			":celular" => utf8_decode($_POST['edit-celular']),
+			":id" => $_POST['idPer'],
+		];
+
+		$paramsEditUsuario = [
+			":idRol" => $_POST['edit-idRol'],
+			":id" => $_POST['idUsu'],
+		];
+
+		$queryPersona = $ca->actualizarPersona($paramsEditPersona);
+		$queryUsuario = $ca->actualizarUsuario($paramsEditUsuario);
+
+		if ($queryPersona && $queryUsuario) {
+			$respuesta = [
+				"exito" => true,
+				"msj" => "Actualización Exitosa"
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Inconveniente al actualizar Usuario"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'eliminarUsuario':
+		$queryDeletedUsuario = $ca->deshabilitarUsuario($_POST['idUsu']);
+		$queryDeletedPersona = $ca->deshabilitarPersona($_POST['idPer']);
+
+		if ($queryDeletedPersona && $queryDeletedUsuario) {
+			$respuesta = [
+				"exito" => true,
+				"msj" => "Eliminación Exitosa"
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Inconveniente al eliminar Usuario"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'listarContactenos':
+		$datos = $ca->listaContactenos();
+		$data = "";
+		foreach ($datos as $lista) {
+			if ($lista['idVisto'] == 11) {
+				$opciones = "<button type='button' data-idContacto='".$lista['id']."' class='visto btn btn-success mx-1' data-toggle='tooltip' data-placement='top' title='Marcar como visto'><i class='far fa-envelope'></i></button>";
+			} else {
+				$opciones = "<span class='text-warning py-1 px-3 border border-warning' data-toggle='tooltip' title='visto'><i class='far fa-envelope-open'></i></span>";
+			}
+			
+
+			$data.= '{
+				"Opciones" : "'.$ca->parse($opciones).'",
+				"Nombre" : "'.$ca->parse(utf8_encode($lista['nombre'])).'",
+				"E-mail" : "'.$ca->parse(utf8_encode($lista['correo'])).'",
+				"Mensaje" : "'.$ca->parse(utf8_encode($lista['mensaje'])).'",
+				"Fecha" : "'.$ca->parse(utf8_encode($lista['fecha'])).'"
+			},';
+		}
+
+		$data = substr($data,0, strlen($data) - 1);
+
+		echo '{"data":['.$data.']}';
+		break;
+
+		case 'marcarComoVisto':
+		$query = $ca->marcarVisto($_POST['idContacto']);
+
+		if ($query) {
+			$respuesta = [
+				"exito" => true,
+				"msj" => "Mensaje marcado como visto"
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Inconveniente al marcar mensaje"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
 		default:
     # code...
 		break;
