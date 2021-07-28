@@ -552,6 +552,274 @@ if( isset($_POST["peticion"]) || isset($_GET["peticion"]) ) {
 		echo json_encode($respuesta);
 		break;
 
+		case 'agregarCliente':
+		$paramsCliente = [
+			":nombreLugar" => utf8_decode($_POST['nombre']),
+			":direccion" => utf8_decode($_POST['direccion']),
+			":idPersona" => utf8_decode($_POST['idPersona']),
+			":idDepartamento" => utf8_decode($_POST['idDepartamento']),
+			":idCiudad" => utf8_decode($_POST['idCiudad']),
+		];
+
+		$queryAddClient = $ca->agregarCliente($paramsCliente);
+
+		if ($queryAddClient) {
+			$respuesta = [
+				"exito" => true,
+				"msj" => "Cliente Agregado"
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Inconveniente al agregar cliente"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'listarClientes':
+		$datos = $ca->listadoClientes();
+		$data = "";
+		foreach ($datos as $lista) {
+			$opciones = "<button type='button' data-idEnti='".$lista['id']."' class='editar btn btn-success btn-sm mx-1' data-toggle='tooltip' data-placement='top' title='Actualizar Entidad'><i class='fas fa-user-edit'></i></button>
+			<button type='button' data-idEnti='".$lista['id']."' class='eliminar ml-2 btn btn-danger btn-sm mx-1' data-toggle='tooltip' data-placement='top' title='Eliminar Entidad'><i class='fa fa-trash'></i></button>";
+
+			$data.= '{
+				"Opciones" : "'.$ca->parse($opciones).'",
+				"Cliente" : "'.$ca->parse(utf8_encode($lista['nomCliente'])).'",
+				"Nombre" : "'.$ca->parse(utf8_encode($lista['nombreLugar'])).'",
+				"Dirección" : "'.$ca->parse(utf8_encode($lista['direccion'])).'",
+				"Departamento" : "'.$ca->parse(utf8_encode($lista['nomDepartamento'])).'",
+				"Ciudad" : "'.$ca->parse(utf8_encode($lista['nomCiudad'])).'"
+			},';
+		}
+
+		$data = substr($data,0, strlen($data) - 1);
+
+		echo '{"data":['.$data.']}';
+		break;
+
+		case 'consultaCuidad':
+		$ciudades = $ca->buscarCiudades($_POST['idDepart']);
+
+		if (sizeof($ciudades)) {
+			$html = '<option value="" selected>Seleccione una Ciudad</option>';
+
+			foreach ($ciudades as $row) {
+				$html .= '<option value="'.$row['id'].'">'.utf8_encode($row['nombre']).'</option>';
+			}
+
+			$respuesta = [
+				"exito" => true,
+				"html" => $html
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "No registran ciudades"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'traerInformacionEntidad':
+		$query = $ca->getInformacionEntidad($_POST['idEnti']);
+
+		$ciudades = $ca->buscarCiudades($query[0]['idDepartamento']);
+
+		$html = '<option value="" selected>Seleccione una Ciudad</option>';
+
+		foreach ($ciudades as $row) {
+			$html .= '<option value="'.$row['id'].'">'.utf8_encode($row['nombre']).'</option>';
+		}
+
+		if (sizeof($query)) {
+			$respuesta = [
+				"exito" => true,
+				"idPersona" => utf8_encode($query[0]['idPersona']),
+				"nombreLugar" => utf8_encode($query[0]['nombreLugar']),
+				"direccion" => utf8_encode($query[0]['direccion']),
+				"idDepartamento" => utf8_encode($query[0]['idDepartamento']),
+				"idCiudad" => utf8_encode($query[0]['idCiudad']),
+				"html" => $html,
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Internal Error"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'actualizarEntidad':
+		$paramsEditEntidad = [
+			":nombreLugar" => utf8_decode($_POST['edit-nombre']),
+			":direccion" => utf8_decode($_POST['edit-direccion']),
+			":idPersona" => utf8_decode($_POST['edit-idPersona']),
+			":idDepartamento" => utf8_decode($_POST['edit-idDepartamento']),
+			":idCiudad" => utf8_decode($_POST['edit-idCiudad']),
+			":id" => utf8_decode($_POST['idEnti']),
+		];
+
+		$queryEntidad = $ca->actualizarEntidad($paramsEditEntidad);
+
+		if ($queryEntidad) {
+			$respuesta = [
+				"exito" => true,
+				"msj" => "Actualización Exitosa"
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Inconveniente al actualizar Entidad"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'eliminarEntidad':
+		$queryDeletedEntidad = $ca->deshabilitarEntidad($_POST['idEnti']);
+
+		if ($queryDeletedEntidad) {
+			$respuesta = [
+				"exito" => true,
+				"msj" => "Eliminación Exitosa"
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Inconveniente al eliminar Entidad"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'eliminarCultivo':
+		$queryDeletedCultivo = $ca->deshabilitarCultivo($_POST['idZonCultivo']);
+
+		if ($queryDeletedCultivo) {
+			$respuesta = [
+				"exito" => true,
+				"msj" => "Eliminación Exitosa"
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Inconveniente al eliminar Cultivo"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'listarCultivos':		
+		$infoCultivo = $ca->listadoCultivosEntidades($_POST['idEnti']);
+		$data = "";
+
+		foreach ($infoCultivo as $lista) {
+
+			$opciones = "<button type='button' data-idZonaCul='".$lista['id']."' class='eliminar ml-2 btn btn-danger btn-sm mx-1' data-toggle='tooltip' data-placement='top' title='Eliminar Cultivo'><i class='fa fa-trash'></i></button>";
+
+			$data.= '{
+				"Opciones" : "'.$ca->parse($opciones).'",
+				"Cultivo" : "'.$ca->parse(utf8_encode($lista['nomCultivo'])).'",
+				"Hectáreas" : "'.$ca->parse(utf8_encode($lista['hectareas'])).'",
+				"Metros Cuadrados" : "'.$ca->parse(utf8_encode($lista['metros_2'])).'"
+			},';
+
+		}
+
+		$data = substr($data,0, strlen($data) - 1);
+
+		echo '{"data":['.$data.']}';
+		break;
+
+		case 'agregarCultivo':
+		$hectareas = (isset($_POST['hectareas']) || $_POST['hectareas'] != "") ? $_POST['hectareas'] : NULL;
+
+		$metros = (isset($_POST['metros2']) || $_POST['metros2'] != "") ? $_POST['metros2'] : NULL;
+
+		$paramsCultivo = [
+			":idZona" => $_POST['idEntidad'],
+			":idCultivo" => $_POST['idCultivo'],
+			":hectareas" => $hectareas,
+			":metros_2" => $metros,
+		];
+
+		$queryCultivo = $ca->agregarCultivo($paramsCultivo);
+
+		if ($queryCultivo) {
+			$respuesta = [
+				"exito" => true,
+				"msj" => "Cultivo Agregado"
+			];
+		} else {
+			$respuesta = [
+				"exito" => false,
+				"msj" => "Inconveniente al agregar cultivo"
+			];
+		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'listarRegistros':		
+		$datos = $ca->listadoRegistros();
+		$data = "";
+
+		foreach ($datos as $lista) {
+
+			$data.= '{
+				"Entidad" : "'.$ca->parse(utf8_encode($lista['nombreLugar'])).'",
+				"Cultivo" : "'.$ca->parse(utf8_encode($lista['nomCultivo'])).'",
+				"Variable" : "'.$ca->parse(utf8_encode($lista['nomVariable'])).'",
+				"Registro" : "'.$ca->parse(utf8_encode($lista['valor'])).'",
+				"Fecha Larga" : "'.$ca->parse(utf8_encode($lista['fecha_larga'])).'",
+				"Fecha Corta" : "'.$ca->parse(utf8_encode($lista['fecha_corta'])).'",
+				"Hora" : "'.$ca->parse(utf8_encode($lista['hora'])).'"
+			},';
+
+		}
+
+		$data = substr($data,0, strlen($data) - 1);
+
+		echo '{"data":['.$data.']}';
+		break;
+
+		case 'listarRegistrosPrediccion':		
+		$datos = $ca->listadoRegistrosPredi();
+		$data = "";
+
+		foreach ($datos as $lista) {
+
+			$data.= '{
+				"Entidad" : "'.$ca->parse(utf8_encode($lista['nombreLugar'])).'",
+				"Cultivo" : "'.$ca->parse(utf8_encode($lista['nomCultivo'])).'",
+				"Humedad relativa" : "'.$ca->parse(utf8_encode($lista['valorHumedad'])).'",
+				"Luminosidad" : "'.$ca->parse(utf8_encode($lista['valorLuminosidad'])).'",
+				"Nitrógeno (N)" : "'.$ca->parse(utf8_encode($lista['valorNitrogeno'])).'",
+				"Potasio (K)" : "'.$ca->parse(utf8_encode($lista['valorPotasio'])).'",
+				"Fósforo (P)" : "'.$ca->parse(utf8_encode($lista['valorFosforo'])).'",
+				"Acidez del suelo (pH)" : "'.$ca->parse(utf8_encode($lista['valorAcidez'])).'",
+				"Temperatura" : "'.$ca->parse(utf8_encode($lista['valorTemperatura'])).'",
+				"Fecha Larga" : "'.$ca->parse(utf8_encode($lista['fecha_larga'])).'",
+				"Fecha Corta" : "'.$ca->parse(utf8_encode($lista['fecha_corta'])).'",
+				"Hora" : "'.$ca->parse(utf8_encode($lista['hora'])).'"
+			},';
+
+		}
+
+		$data = substr($data,0, strlen($data) - 1);
+
+		echo '{"data":['.$data.']}';
+		break;
+
 		default:
     # code...
 		break;

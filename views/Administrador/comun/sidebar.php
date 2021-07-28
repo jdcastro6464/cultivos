@@ -4,9 +4,36 @@
 		<li class="sidebar-list-item"><a href="index.php" class="sidebar-link text-muted inicio">
 			<i class="o-home-1 mr-3 text-gray"></i><span>Inicio</span></a>
 		</li>
-		<li class="sidebar-list-item"><a href="usuario.php" class="sidebar-link text-muted usuario">
-			<i class="o-user-1 mr-3 text-gray"></i><span>Admin. Usuario</span></a>
+
+		<li class="sidebar-list-item"><a href="#!" id="expand" data-toggle="collapse" data-target="#pages" aria-expanded="false" aria-controls="pages" class="sidebar-link text-muted collapsed"><i class="o-wireframe-1 mr-3 text-gray"></i><span>Administración</span></a>
+			<div id="pages" class="collapse" style="">
+				<ul class="sidebar-menu list-unstyled border-left border-primary border-thick">
+					<li class="sidebar-list-item"><a href="usuario.php" class="sidebar-link text-muted usuario">
+						<i class="o-user-1 mr-3 text-gray"></i><span>Admin. Usuario</span></a>
+					</li>
+					<li class="sidebar-list-item"><a href="cliente.php" class="sidebar-link text-muted cliente">
+						<i class="o-profile-1 mr-3 text-gray"></i><span>Admin. Entidad</span></a>
+					</li>
+					<li class="sidebar-list-item"><a href="admincultivo.php" class="sidebar-link text-muted admincultivo">
+						<i class="o-diploma-1 mr-3 text-gray"></i><span>Admin. Cultivos</span></a>
+					</li>
+				</ul>
+			</div>
 		</li>
+
+		<li class="sidebar-list-item"><a href="#!" id="expand_r" data-toggle="collapse" data-target="#pages_r" aria-expanded="false" aria-controls="pages_r" class="sidebar-link text-muted collapsed"><i class="o-data-storage-1 mr-3 text-gray"></i><span>Registros</span></a>
+			<div id="pages_r" class="collapse" style="">
+				<ul class="sidebar-menu list-unstyled border-left border-primary border-thick">
+					<li class="sidebar-list-item"><a href="registros.php" class="sidebar-link text-muted registros">
+						<i class="o-letter-1 mr-3 text-gray"></i><span>Registros Cultivos</span></a>
+					</li>
+					<li class="sidebar-list-item"><a href="registros_predi.php" class="sidebar-link text-muted registros_predi">
+						<i class="o-letter-1 mr-3 text-gray"></i><span>Registros Cultivos Predicción</span></a>
+					</li>
+				</ul>
+			</div>
+		</li>
+
 		<li class="sidebar-list-item"><a href="seguimiento.php" class="sidebar-link text-muted seguimiento">
 			<i class="o-sales-up-1 mr-3 text-gray"></i><span>Seguimiento por gráficas</span></a>
 		</li>

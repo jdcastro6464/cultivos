@@ -37,10 +37,29 @@ class Mixtas extends Conexion{
 		return $this->listado;
 	}
 
+	public function listadoDepartamentos() {
+		$sentencia = $this->ejecutar("SELECT * FROM departamentos");
+		$this->listado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+
+		return $this->listado;
+	}
+
 	public function listadoCultivos() {
 		$sentencia = $this->ejecutar("SELECT * FROM cultivos
 			WHERE
 			estado = 1");
+		$this->listado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+
+		return $this->listado;
+	}
+
+	public function listadoClientes() {
+		$sentencia = $this->ejecutar("SELECT per.* FROM persona as per
+			INNER JOIN __usserr__ as usu ON usu.idPersona = per.id
+			WHERE
+			per.estado = 1 AND
+			usu.estado = 1 AND
+			usu.idRol = 2");
 		$this->listado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
 
 		return $this->listado;

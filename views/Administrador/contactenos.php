@@ -21,7 +21,7 @@ if( !isset( $_SESSION['user']['nombrePersona'] ) || $_SESSION['user']['rol'] != 
 	<!-- navbar-->
 	<header class="header">
 		<nav class="navbar navbar-expand-lg px-4 py-2 bg-white shadow">
-			<a href="index.php#" class="sidebar-toggler text-gray-500 mr-4 mr-lg-5 lead">
+			<a href="#!" class="sidebar-toggler text-gray-500 mr-4 mr-lg-5 lead">
 				<i class="fas fa-align-left"></i>
 			</a>
 			<a href="index.php" class="navbar-brand font-weight-bold text-uppercase text-base">
@@ -52,44 +52,40 @@ if( !isset( $_SESSION['user']['nombrePersona'] ) || $_SESSION['user']['rol'] != 
 		<div class="page-holder w-100 d-flex flex-wrap">
 			<div class="container-fluid px-xl-5">
 				<!-- Main Content Start -->
-				<section class="py-5">
+				<section class="py-5">	
+					<div class="row">
+						<div class="col-12">
 
-					<section class="py-5">	
-						<div class="row">
-							<div class="col-12">
-
-								<div class="card">
-									<div class="card-header">
-										<h3 class="h6 text-uppercase mb-0">Listado de Mensajes</h3>
-									</div>
-									<div class="card-body">
-										
-										<div id="aprobacion">
-											<div class="data-tables table-responsive">
-												<table id="table_contactenos" class="table text-center">
-													<thead class="bg-gray-900 text-capitalize">
-														<tr>
-															<th>Opciones</th>
-															<th>Nombre</th>
-															<th>E-mail</th>
-															<th>Mensaje</th>
-															<th>Fecha</th>
-														</tr>
-													</thead>
-													<tbody>
-													</tbody>
-												</table>
-											</div>
-										</div>
-										<div id="msj"></div>
-
-									</div>
+							<div class="card">
+								<div class="card-header">
+									<h3 class="h6 text-uppercase mb-0">Listado de Mensajes</h3>
 								</div>
+								<div class="card-body">
+									
+									<div id="aprobacion">
+										<div class="data-tables table-responsive">
+											<table id="table_contactenos" class="table text-center w-100">
+												<thead class="bg-gray-900 text-capitalize">
+													<tr>
+														<th>Opciones</th>
+														<th>Nombre</th>
+														<th>E-mail</th>
+														<th>Mensaje</th>
+														<th>Fecha</th>
+													</tr>
+												</thead>
+												<tbody>
+												</tbody>
+											</table>
+										</div>
+									</div>
+									<div id="msj"></div>
 
+								</div>
 							</div>
-						</div>
-					</section>
 
+						</div>
+					</div>
 				</section>				
 				<!-- Main Content End -->
 			</div>
