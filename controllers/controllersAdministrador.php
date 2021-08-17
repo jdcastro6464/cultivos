@@ -144,7 +144,7 @@ if( isset($_POST["peticion"]) || isset($_GET["peticion"]) ) {
 			$cultivos = $_POST['cultivo'];
 			$info_cultivo = $ca->consultaonlyCultivo($cultivos);
 
-			if (sizeof($cultivos)) {
+			if (sizeof($info_cultivo)) {
 				$global_series = [];
 				$conteo = 0;
 				$variables_unicas = $ca->consultarUnicasVariables($cultivos);
