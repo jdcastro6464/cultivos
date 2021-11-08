@@ -200,7 +200,7 @@ $(document).ready(function() {
 					$.ajax({
 						type: 'POST',
 						url: 'http://127.0.0.1:5000/prediccion_variable',
-						//url: 'https://colomboalemanbq.com/webflask/prediccion_variable',
+						//url: 'http://colomboalemanbq.com/webflask/prediccion_variable',
 						dataType: 'json',
 						data: $("#form_variables").serialize(),
 						beforeSend:function(xhr){

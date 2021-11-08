@@ -34,6 +34,9 @@
 			</div>
 		</li>
 
+		<li class="sidebar-list-item"><a href="tomadecisiones.php" class="sidebar-link text-muted tomadecisiones">
+			<i class="o-medical-chart-1 mr-3 text-gray"></i><span>Toma de decisiones</span></a>
+		</li>
 		<li class="sidebar-list-item"><a href="seguimiento.php" class="sidebar-link text-muted seguimiento">
 			<i class="o-sales-up-1 mr-3 text-gray"></i><span>Seguimiento por gráficas</span></a>
 		</li>

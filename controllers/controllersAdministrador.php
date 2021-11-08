@@ -216,7 +216,9 @@ if( isset($_POST["peticion"]) || isset($_GET["peticion"]) ) {
 				$html .= '<option value="'.$row['id'].'">'.utf8_encode($row['nomCultivo']).'</option>';
 			}
 
-			$html .= '<option value="all">Todos</option>';
+			if ($_POST['all']) {
+				$html .= '<option value="all">Todos</option>';
+			}			
 
 			$respuesta = [
 				"exito" => true,
@@ -230,6 +232,1716 @@ if( isset($_POST["peticion"]) || isset($_GET["peticion"]) ) {
 				"html" => '<option value="0" selected>Seleccione un cultivo</option>'
 			];
 		}
+
+		echo json_encode($respuesta);
+		break;
+
+		case 'consultaTablas':
+		$paramszc = [
+			":idZona" => $_POST['entidad'],
+			":idCultivo" => $_POST['cultivo'],
+		];
+
+		$dzculti = $ca->zonacultivobycultivo($paramszc);
+		$ref = $ca->consultaReferencia($_POST['cultivo']);
+		$reg = $ca->registroTomadecision($dzculti[0]['id']);
+
+		$ruta = "../plantilla/operaciones.xlsx";
+		$libro = IOFactory::load($ruta);
+
+		$libro->setActiveSheetIndex(0);
+		$general = $libro->getActiveSheet();
+
+		$general->setCellValue('C9', $reg[0]['valorNitrogeno']);
+		$general->setCellValue('C10', $reg[0]['valorFosforo']);
+		$general->setCellValue('C11', $reg[0]['valorPotasio']);
+		$general->setCellValue('C12', $reg[0]['valorAcidez']);
+
+		$neutralizar = floatval($ref[0]['maximo']) - floatval($reg[0]['valorAcidez']);
+		$general->setCellValue('E12', $neutralizar);
+
+		$html = '<div class="col-12">
+		<div class="table-responsive">
+		<table class="table table-bordered text-center">
+		<thead>
+		<tr>
+		<th scope="col" colspan="5">Dosificación de Enmienda o encalante (Ton - Bultos)</th>
+		</tr>
+		<tr>
+		<th scope="col">Fuentes</th>
+		<th scope="col">Neutralización</th>
+		<th scope="col">Formula QCA</th>
+		<th scope="col">Dosis del Encalante (Ton)</th>
+		<th scope="col">Dosis del Encalante (Bultosx50 Kg)</th>
+		</tr>
+		</thead>
+		<tbody>';
+
+		for ($i = 17; $i < 26; $i++) { 
+			$html .= '<tr>';
+			$html.= '<td>'.$general->getCell("B".$i)->getCalculatedValue().'</td>';
+			$html.= '<td>'.$general->getCell("C".$i)->getCalculatedValue().'</td>';
+			$html.= '<td>'.$general->getCell("D".$i)->getCalculatedValue().'</td>';
+			$html.= '<td>'.$general->getCell("E".$i)->getCalculatedValue().'</td>';
+			$html.= '<td>'.$general->getCell("F".$i)->getCalculatedValue().'</td>';
+			$html .= '</tr>';
+		}
+
+		$html .= '</tbody>
+		</table>
+		</div>
+		</div>';
+
+		switch ($_POST['cultivo']) {
+			//Yuca
+			case '1':
+			$libro->setActiveSheetIndex(1);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="9">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">SIEMBRA</th>
+			<th scope="col">30 DDS</th>
+			<th scope="col">60 DDS</th>
+			<th scope="col">90 DDS</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="9">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">SIEMBRA</th>
+			<th scope="col">30 DDS</th>
+			<th scope="col">60 DDS</th>
+			<th scope="col">90 DDS</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="10">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">SIEMBRA</th>
+			<th scope="col">30 DDS</th>
+			<th scope="col">60 DDS</th>
+			<th scope="col">90 DDS</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			//Mango
+			case '2':
+			$libro->setActiveSheetIndex(5);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="11">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="6">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 185 árboles/ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(2-4 Años)</th>
+			<th scope="col">Edad<br>(5-10 Años)</th>
+			<th scope="col">Edad<br>(10-15 Años)</th>
+			<th scope="col">Edad<br>(15-20 Años)</th>
+			<th scope="col">Edad<br>(más 20 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="11">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="6">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 185 árboles/ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(2-4 Años)</th>
+			<th scope="col">Edad<br>(5-10 Años)</th>
+			<th scope="col">Edad<br>(10-15 Años)</th>
+			<th scope="col">Edad<br>(15-20 Años)</th>
+			<th scope="col">Edad<br>(más 20 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="12">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="6">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 185 árboles/ha)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(2-4 Años)</th>
+			<th scope="col">Edad<br>(5-10 Años)</th>
+			<th scope="col">Edad<br>(10-15 Años)</th>
+			<th scope="col">Edad<br>(15-20 Años)</th>
+			<th scope="col">Edad<br>(más 20 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			//Maiz
+			case '3':
+			$libro->setActiveSheetIndex(2);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="9">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Etapa VE<br>(0-4 días)</th>
+			<th scope="col">Etapa V3<br>(25-30 días)</th>
+			<th scope="col">Etapa V6<br>(55-60 días)</th>
+			<th scope="col">Etapa V9<br>(75-80 días)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="9">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Etapa VE<br>(0-4 días)</th>
+			<th scope="col">Etapa V3<br>(25-30 días)</th>
+			<th scope="col">Etapa V6<br>(55-60 días)</th>
+			<th scope="col">Etapa V9<br>(75-80 días)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="10">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">Etapa VE<br>(0-4 días)</th>
+			<th scope="col">Etapa V3<br>(25-30 días)</th>
+			<th scope="col">Etapa V6<br>(55-60 días)</th>
+			<th scope="col">Etapa V9<br>(75-80 días)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			//Limón
+			case '4':
+			$libro->setActiveSheetIndex(8);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="14">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="9">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 334 árboles/ha) (Fraccionar 4 dosis/año)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(2-3 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(4-5 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(6-7 Años)</th>
+			<th scope="col">Edad<br>(7 -8 Años)</th>
+			<th scope="col">Edad<br>(8-9 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("N".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("O".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="14">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="9">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 334 árboles/ha) (Fraccionar 4 dosis/año)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(2-3 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(4-5 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(6-7 Años)</th>
+			<th scope="col">Edad<br>(7 -8 Años)</th>
+			<th scope="col">Edad<br>(8-9 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("N".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("O".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="15">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="9">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 334 árboles/ha) (Fraccionar 4 dosis/año)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(2-3 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(4-5 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(6-7 Años)</th>
+			<th scope="col">Edad<br>(7 -8 Años)</th>
+			<th scope="col">Edad<br>(8-9 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("N".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("O".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("P".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			//Papaya
+			case '5':
+			$libro->setActiveSheetIndex(9);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="10">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="5">Distribución de la fertilización (Kg/Ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Año 1</th>
+			<th scope="col">Año 2</th>
+			<th scope="col">Año 3</th>
+			<th scope="col">Año 4</th>
+			<th scope="col">Año 5</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="10">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="5">Distribución de la fertilización (Kg/Ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Año 1</th>
+			<th scope="col">Año 2</th>
+			<th scope="col">Año 3</th>
+			<th scope="col">Año 4</th>
+			<th scope="col">Año 5</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="11">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="5">Distribución de la fertilización (Kg/Ha)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">Año 1</th>
+			<th scope="col">Año 2</th>
+			<th scope="col">Año 3</th>
+			<th scope="col">Año 4</th>
+			<th scope="col">Año 5</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			//Guayaba
+			case '6':
+			$libro->setActiveSheetIndex(6);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="12">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="7">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 625 árboles/ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(7-8 Años)</th>
+			<th scope="col">Edad<br>(9 -10 Años)</th>
+			<th scope="col">Edad<br>(más 11 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="12">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="7">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 625 árboles/ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(7-8 Años)</th>
+			<th scope="col">Edad<br>(9 -10 Años)</th>
+			<th scope="col">Edad<br>(más 11 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="13">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="7">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 625 árboles/ha)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(7-8 Años)</th>
+			<th scope="col">Edad<br>(9 -10 Años)</th>
+			<th scope="col">Edad<br>(más 11 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("N".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			//Guandul
+			case '7':
+			$libro->setActiveSheetIndex(10);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="9">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">SIEMBRA</th>
+			<th scope="col">30 DDS</th>
+			<th scope="col">60 DDS</th>
+			<th scope="col">90 DDS</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="9">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">SIEMBRA</th>
+			<th scope="col">30 DDS</th>
+			<th scope="col">60 DDS</th>
+			<th scope="col">90 DDS</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="10">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">SIEMBRA</th>
+			<th scope="col">30 DDS</th>
+			<th scope="col">60 DDS</th>
+			<th scope="col">90 DDS</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			//Ñame
+			case '8':
+			$libro->setActiveSheetIndex(3);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="9">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Etapa 1 Plantula (0-20 DDS)</th>
+			<th scope="col">Etapa 2 D. vegetativo (20-90 DDS)</th>
+			<th scope="col">Etapa 3 tuberización (90-210 DDS)</th>
+			<th scope="col">Etapa 4 Senescencia (210-270 DDS)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="9">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Etapa 1 Plantula (0-20 DDS)</th>
+			<th scope="col">Etapa 2 D. vegetativo (20-90 DDS)</th>
+			<th scope="col">Etapa 3 tuberización (90-210 DDS)</th>
+			<th scope="col">Etapa 4 Senescencia (210-270 DDS)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="10">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="4">Distribución de la fertilización (Kg/Ha)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">Etapa 1 Plantula (0-20 DDS)</th>
+			<th scope="col">Etapa 2 D. vegetativo (20-90 DDS)</th>
+			<th scope="col">Etapa 3 tuberización (90-210 DDS)</th>
+			<th scope="col">Etapa 4 Senescencia (210-270 DDS)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			//Marañon
+			case '9':
+			$libro->setActiveSheetIndex(11);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="12">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="7">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 625 árboles/ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(7-8 Años)</th>
+			<th scope="col">Edad<br>(9 -10 Años)</th>
+			<th scope="col">Edad<br>(más 11 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="12">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="7">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 625 árboles/ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(7-8 Años)</th>
+			<th scope="col">Edad<br>(9 -10 Años)</th>
+			<th scope="col">Edad<br>(más 11 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="13">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="7">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 625 árboles/ha)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(7-8 Años)</th>
+			<th scope="col">Edad<br>(9 -10 Años)</th>
+			<th scope="col">Edad<br>(más 11 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("N".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			//Ciruela
+			case '10':
+			$libro->setActiveSheetIndex(12);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="12">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="7">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 625 árboles/ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(7-8 Años)</th>
+			<th scope="col">Edad<br>(9 -10 Años)</th>
+			<th scope="col">Edad<br>(más 11 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="12">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="7">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 625 árboles/ha)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(7-8 Años)</th>
+			<th scope="col">Edad<br>(9 -10 Años)</th>
+			<th scope="col">Edad<br>(más 11 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="13">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="7">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 625 árboles/ha)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(7-8 Años)</th>
+			<th scope="col">Edad<br>(9 -10 Años)</th>
+			<th scope="col">Edad<br>(más 11 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("N".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			//Lima Tahiti
+			case '11':
+			$libro->setActiveSheetIndex(8);
+			$cultivo = $libro->getActiveSheet();
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="14">Dosis de Nitrogeno (N)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de N (%)</th>
+			<th scope="col" rowspan="2">Nitrogeno Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Nitrogeno a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">N Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="9">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 334 árboles/ha) (Fraccionar 4 dosis/año)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(2-3 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(4-5 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(6-7 Años)</th>
+			<th scope="col">Edad<br>(7 -8 Años)</th>
+			<th scope="col">Edad<br>(8-9 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 6; $i < 10; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("N".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("O".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="14">Dosis de Fósforo (P)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de P2O5 (%)</th>
+			<th scope="col" rowspan="2">Fósforo Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Fósforo a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">P205 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="9">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 334 árboles/ha) (Fraccionar 4 dosis/año)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(2-3 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(4-5 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(6-7 Años)</th>
+			<th scope="col">Edad<br>(7 -8 Años)</th>
+			<th scope="col">Edad<br>(8-9 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 15; $i < 20; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("N".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("O".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+
+			$html .= '<div class="col-12 mt-4">
+			<div class="table-responsive">
+			<table class="table table-bordered text-center">
+			<thead>
+			<tr>
+			<th scope="col" colspan="15">Dosis de Potasio (K)</th>
+			</tr>
+			<tr>
+			<th scope="col" rowspan="2">Fuentes</th>
+			<th scope="col" rowspan="2">Contenido de K2O (%)</th>
+			<th scope="col" rowspan="2">Potasio Requerido x Cultivo (KG/Ha)</th>
+			<th scope="col" rowspan="2">Potasio a aportar al suelo(Kg/ha)</th>
+			<th scope="col" rowspan="2">K20 Aplicación x Fuentes (Kg/ha)</th>
+			<th scope="col" colspan="9">Distribución de la fertilización (Kg/plantas/Año); (Densidad de siembra de 334 árboles/ha) (Fraccionar 4 dosis/año)</th>
+			<th scope="col" rowspan="2">Contenido de N Adicional (13%)</th>
+			</tr>
+			<tr>
+			<th scope="col">Edad<br>(0-1 Años)</th>
+			<th scope="col">Edad<br>(1-2 Años)</th>
+			<th scope="col">Edad<br>(2-3 Años)</th>
+			<th scope="col">Edad<br>(3-4 Años)</th>
+			<th scope="col">Edad<br>(4-5 Años)</th>
+			<th scope="col">Edad<br>(5-6 Años)</th>
+			<th scope="col">Edad<br>(6-7 Años)</th>
+			<th scope="col">Edad<br>(7 -8 Años)</th>
+			<th scope="col">Edad<br>(8-9 Años)</th>
+			</tr>
+			</thead>
+			<tbody>';
+
+			for ($i = 25; $i < 28; $i++) { 
+				$html .= '<tr>';
+				$html.= '<td>'.$cultivo->getCell("B".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("C".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("D".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("E".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("F".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("G".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("H".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("I".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("J".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("K".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("L".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("M".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("N".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("O".$i)->getCalculatedValue().'</td>';
+				$html.= '<td>'.$cultivo->getCell("P".$i)->getCalculatedValue().'</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody>
+			</table>
+			</div>
+			</div>';
+			break;
+			
+			default:
+				// code...
+			break;
+		}
+
+		$respuesta = [
+			"exito" => true,
+			"msj" => "Correcto",
+			"html" => $html
+		];
 
 		echo json_encode($respuesta);
 		break;

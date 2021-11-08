@@ -172,6 +172,7 @@ $(document).ready(function() {
 			url: '../../controllers/controllersAdministrador.php',
 			data: {
 				peticion: 'consultaCultivos',
+				all: 1,
 				entidad: $(this).val()
 			},
 			dataType: 'json',

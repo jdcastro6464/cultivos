@@ -20,6 +20,18 @@ class Mixtas extends Conexion{
 		return $this->listado;
 	}
 
+	public function listadoentidadesbyPersona($idPersona) {
+		$sentencia = $this->ejecutar("SELECT zon.*, dep.nombre as nomDepart, mun.nombre as nomCiudad FROM zonas as zon
+			INNER JOIN departamentos as dep ON dep.id = zon.idDepartamento
+			INNER JOIN municipios as mun ON mun.id = zon.idCiudad
+			WHERE
+			zon.estado = 1 AND
+			zon.idPersona = $idPersona");
+		$this->listado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+
+		return $this->listado;
+	}
+
 	public function listadoVariables() {
 		$sentencia = $this->ejecutar("SELECT * FROM subitem
 			WHERE

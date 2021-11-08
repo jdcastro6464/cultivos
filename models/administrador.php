@@ -194,6 +194,37 @@ class Administrador extends Conexion{
 		return $this->listado;
 	}
 
+	public function zonacultivobycultivo($params) {
+		$sentencia = $this->ejecutarConParametros("SELECT * FROM zona_cultivos
+			WHERE
+			idZona = :idZona AND
+			idCultivo = :idCultivo AND
+			estado = 1", $params);
+		$this->listado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+
+		return $this->listado;
+	}
+
+	public function registroTomadecision($idZonacultivo) {
+		$sentencia = $this->ejecutar("SELECT * FROM registros_cultivos_prediccion
+			WHERE
+			idZonacultivo = $idZonacultivo
+			ORDER BY id DESC LIMIT 1");
+		$this->listado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+
+		return $this->listado;
+	}
+
+	public function consultaReferencia($cultivo) {
+		$sentencia = $this->ejecutar("SELECT * FROM referencia_cultivo
+			WHERE
+			idCultivo = $cultivo AND
+			idVariable = 22");
+		$this->listado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+
+		return $this->listado;
+	}
+
 	public function listaContactenos() {
 		$sentencia = $this->ejecutar("SELECT * FROM contactenos");
 		$this->listado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
